@@ -1,7 +1,9 @@
 // Shift out pins for LEDs
 int dataPin_leds = 11;
 int clockPin_leds = 12;
-int latchPin_leds = 8;
+//int latchPin_leds = 8;
+int latchPin_leds = 13;
+
 byte ledStatesTop = 255;
 byte ledStatesBottom = 255;
 
@@ -11,27 +13,7 @@ int clockPin_switches = 7;
 int latchPin_switches = 8;
 byte switches = 72;
 
-int loopIterator = 0;
-
 void (*switchResponses[8])();
-
-// Clears led at a certain number. Handles top vs bottom led.
-void clearLed(int ledNum) {
-  if (ledNum < 8) {
-    bitClear(ledStatesTop, ledNum);
-  } else if (ledNum < 16) {
-    bitClear(ledStatesBottom, ledNum - 8);
-  } else {
-    Serial.print("ledNum = ");
-    Serial.print(ledNum);
-    Serial.println(" is invalid.");
-  }
-}
-
-void resetLeds() {
-  ledStatesTop = 255;
-  ledStatesBottom = 255;
-}
 
 void age1() {
   // Turn off attractions unsuitable for 5-14 year olds
@@ -103,6 +85,7 @@ void water() {
   clearLed(4);
   clearLed(2);
   clearLed(8);
+  clearLed(15);
 }
 
 byte updateShiftRegisterIn(){
@@ -111,10 +94,14 @@ byte updateShiftRegisterIn(){
   digitalWrite(latchPin_switches, LOW);
 
   switches = shiftIn(dataPin_switches, clockPin_switches);
+  Serial.print("switches: ");
+  Serial.println(switches, BIN);
 }
 
 void updateShiftRegisterOut(){
+  Serial.print("led states: ");
   Serial.print(ledStatesTop, BIN);
+  Serial.print(" - ");
   Serial.println(ledStatesBottom, BIN);
   
   digitalWrite(latchPin_leds, LOW);
@@ -189,26 +176,39 @@ void setup() {
   delay(200);
 }
 
+// Clears led at a certain number. Handles top vs bottom led.
+void clearLed(int ledNum) {
+  if (ledNum < 8) {
+    bitClear(ledStatesTop, ledNum);
+  } else if (ledNum < 16) {
+    bitClear(ledStatesBottom, ledNum - 8);
+  } else {
+    Serial.print("ledNum = ");
+    Serial.print(ledNum);
+    Serial.println(" is invalid.");
+  }
+}
+
+void resetLeds() {
+  // Set them to 11111111 bytes
+  ledStatesTop = 255;
+  ledStatesBottom = 255;
+}
+
 void loop() {
+  Serial.println();
+  
   // Reset LED status
   resetLeds();
 
-  // Read switches and call appropriate action function (age1() etc.)
+  // Read switches
+  updateShiftRegisterIn();
+
+  // Call appropriate action function (age1() etc.)
   interpretSwitches();
 
   // Update Leds based on switchResponses[]
   updateShiftRegisterOut();
 
-//  (switchResponses[loopIterator])();
-////  Serial.println(switchResponses[loopIterator]);
-//  updateShiftRegisterOut();
-//
-//  if (loopIterator == 15) {
-//    Serial.println("----------- starting over -----------");
-//  }
-//  
-//  loopIterator = (loopIterator + 1) % 16;
-//  
   delay(500);
-  
 }
