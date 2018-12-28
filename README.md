@@ -17,3 +17,6 @@ clockPin_switches = 7
 latchPin_switches = 8  
 
 All of the code needed can be found in `Final_Project/Final_Project.ino`. Simply updload it to the Arduino on the circuit and you'll be good to go. You can test the shift register circuits using the code in `Shift_in/Shift_in.ino` and `Shift_out/Shift_out.ino`.
+
+
+Note: the `docs/` folder holds the code for the website. 
